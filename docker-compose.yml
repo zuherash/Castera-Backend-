@@ -1,0 +1,27 @@
+# docker-compose.yml
+version: '3.9'
+
+services:
+  web:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8100:8000"  
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: castera_db_main
+      POSTGRES_USER: castera_user_main
+      POSTGRES_PASSWORD: castera_pass_main
+    ports:
+      - "55432:5432"  
+    volumes:
+      - castera_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  castera_postgres_data:
