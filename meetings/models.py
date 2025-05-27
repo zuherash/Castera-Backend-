@@ -7,6 +7,11 @@ class Meeting(models.Model):
         ('public', 'Public'),
         ('private', 'Private'),
     ]
+    STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('ended', 'Ended'),
+    ]
+
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     title = models.CharField(max_length=255)
@@ -14,6 +19,15 @@ class Meeting(models.Model):
     type_of = models.CharField(max_length=10, choices=ROOM_TYPE_CHOICES, default='public')
     created_on = models.DateTimeField(auto_now_add=True)
     room_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='active')
 
     def __str__(self):
         return f"{self.title} - {self.user.email}"
+class Message(models.Model):
+    meeting = models.ForeignKey(Meeting, on_delete=models.CASCADE, related_name='messages')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    content = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Message from {self.user.email} in {self.meeting.title}"
