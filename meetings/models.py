@@ -31,3 +31,19 @@ class Message(models.Model):
 
     def __str__(self):
         return f"Message from {self.user.email} in {self.meeting.title}"
+    
+class Signal(models.Model):
+    SIGNAL_TYPE_CHOICES = [
+        ('offer', 'Offer'),
+        ('answer', 'Answer'),
+        ('ice', 'ICE'),
+    ]
+
+    meeting = models.ForeignKey(Meeting, on_delete=models.CASCADE, related_name='signals')
+    sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    signal_type = models.CharField(max_length=10, choices=SIGNAL_TYPE_CHOICES)
+    data = models.JSONField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.signal_type.upper()} by {self.sender.email} in {self.meeting.title}"

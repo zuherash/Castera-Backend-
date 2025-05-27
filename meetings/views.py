@@ -3,12 +3,12 @@ from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied
 
-from .models import Meeting, Message
-from .serializers import MeetingSerializer, MessageSerializer
+from .models import Meeting, Message, Signal
+from .serializers import MeetingSerializer, MessageSerializer, SignalSerializer
 from .permissions import IsOwnerOrAdmin
 
 
-# ✅ API للانضمام إلى اجتماع عبر room_id
+# ✅ الانضمام إلى اجتماع عبر room_id (UUID)
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
 def join_meeting(request, room_id):
@@ -21,7 +21,7 @@ def join_meeting(request, room_id):
     return Response(serializer.data)
 
 
-# ✅ API رئيسي للتحكم بالاجتماعات
+# ✅ إدارة الاجتماعات
 class MeetingViewSet(viewsets.ModelViewSet):
     serializer_class = MeetingSerializer
     permission_classes = [permissions.IsAuthenticated, IsOwnerOrAdmin]
@@ -35,7 +35,6 @@ class MeetingViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
-    # ✅ تغيير حالة الاجتماع (active / ended)
     @action(detail=True, methods=['post'], url_path='set-status')
     def set_status(self, request, pk=None):
         meeting = self.get_object()
@@ -49,7 +48,7 @@ class MeetingViewSet(viewsets.ModelViewSet):
         return Response({'message': f'Status set to {new_status}'})
 
 
-# ✅ API لعرض رسائل اجتماع معيّن أو إرسال رسالة جديدة
+# ✅ إدارة رسائل الاجتماع
 class MessageListCreateView(generics.ListCreateAPIView):
     serializer_class = MessageSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -71,3 +70,27 @@ class MessageListCreateView(generics.ListCreateAPIView):
             raise PermissionDenied("You are not allowed to send messages to this meeting.")
 
         serializer.save(user=self.request.user, meeting=meeting)
+
+
+# ✅ إدارة إشارات WebRTC (Offer, Answer, ICE)
+class SignalListCreateView(generics.ListCreateAPIView):
+    serializer_class = SignalSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        meeting_id = self.kwargs.get('meeting_id')
+        meeting = Meeting.objects.get(id=meeting_id)
+
+        if self.request.user != meeting.user and self.request.user.role != 'admin':
+            raise PermissionDenied("Access denied to this meeting’s signaling.")
+
+        return Signal.objects.filter(meeting=meeting).order_by('created_at')
+
+    def perform_create(self, serializer):
+        meeting_id = self.kwargs.get('meeting_id')
+        meeting = Meeting.objects.get(id=meeting_id)
+
+        if self.request.user != meeting.user and self.request.user.role != 'admin':
+            raise PermissionDenied("You cannot send signaling to this meeting.")
+
+        serializer.save(sender=self.request.user, meeting=meeting)
