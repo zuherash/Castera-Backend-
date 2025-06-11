@@ -100,3 +100,37 @@ class APITests(APITestCase):
         resp = self.client.get(dashboard_url)
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.data["total_meetings"], 2)
+
+
+class PermissionTests(APITestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.owner = User.objects.create_user(email="owner@example.com")
+        self.admin = User.objects.create_user(email="adm@example.com", role="admin")
+        self.other = User.objects.create_user(email="other@example.com")
+        self.meeting = Meeting.objects.create(
+            user=self.owner,
+            title="Test",
+            description="desc",
+            scheduled_date=timezone.now() + timezone.timedelta(days=1),
+        )
+
+    def test_owner_can_modify(self):
+        self.client.force_authenticate(user=self.owner)
+        url = reverse("meeting-detail", args=[self.meeting.id])
+        resp = self.client.patch(url, {"title": "Updated"}, format="json")
+        self.assertEqual(resp.status_code, 200)
+
+    def test_admin_can_modify(self):
+        self.client.force_authenticate(user=self.admin)
+        url = reverse("meeting-detail", args=[self.meeting.id])
+        resp = self.client.patch(url, {"title": "Updated by admin"}, format="json")
+        self.assertEqual(resp.status_code, 200)
+
+    def test_other_cannot_modify_but_can_view(self):
+        self.client.force_authenticate(user=self.other)
+        url = reverse("meeting-detail", args=[self.meeting.id])
+        resp = self.client.patch(url, {"title": "Hacker"}, format="json")
+        self.assertEqual(resp.status_code, 403)
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
