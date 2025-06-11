@@ -1,16 +1,17 @@
 from .settings import *
+import os
 
 # Use PostgreSQL database from Docker for tests
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'castera_db_main',
-        'USER': 'castera_user_main',
-        'PASSWORD': 'castera_pass_main',
-        'HOST': 'db',
-        'PORT': '5432',
+        'NAME': os.environ.get('POSTGRES_DB', 'castera_db_main'),
+        'USER': os.environ.get('POSTGRES_USER', 'castera_user_main'),
+        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'castera_pass_main'),
+        'HOST': os.environ.get('POSTGRES_HOST', 'db'),
+        'PORT': os.environ.get('POSTGRES_PORT', '5432'),
         'TEST': {
-            'NAME': 'castera_test',
+            'NAME': os.environ.get('POSTGRES_TEST_DB', 'castera_test'),
         },
     }
 }
