@@ -100,3 +100,38 @@ class APITests(APITestCase):
         resp = self.client.get(dashboard_url)
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.data["total_meetings"], 2)
+
+    def test_unauthenticated_requests_fail(self):
+        url = reverse("meeting-list")
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 401)
+
+    def test_non_owner_cannot_modify_meeting(self):
+        other = User.objects.create_user(email="other@example.com")
+        self.authenticate(other)
+        detail_url = reverse("meeting-detail", args=[self.meeting_future.id])
+        resp = self.client.patch(detail_url, {"title": "hack"}, format="json")
+        self.assertEqual(resp.status_code, 403)
+
+    def test_invalid_status_value(self):
+        self.authenticate(self.user)
+        status_url = reverse("meeting-set-status", args=[self.meeting_future.id])
+        resp = self.client.post(status_url, {"status": "invalid"}, format="json")
+        self.assertEqual(resp.status_code, 400)
+
+    def test_create_meeting_missing_title(self):
+        self.authenticate(self.user)
+        url = reverse("meeting-list")
+        data = {
+            "description": "desc",
+            "scheduled_date": (timezone.now() + timezone.timedelta(days=1)).isoformat(),
+        }
+        resp = self.client.post(url, data, format="json")
+        self.assertEqual(resp.status_code, 400)
+
+    def test_non_owner_message_access_denied(self):
+        other = User.objects.create_user(email="other@example.com")
+        self.authenticate(other)
+        url = reverse("meeting-messages", args=[self.meeting_future.id])
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 403)
