@@ -17,6 +17,14 @@ docker compose up --build
 
 The web service listens on port `8100` by default. A PostgreSQL database and a Redis instance are started automatically.
 
+To access the Django admin you will need a superuser account:
+
+```bash
+docker compose run web python manage.py createsuperuser
+```
+
+Once created, visit `http://localhost:8100/admin/` and log in with the credentials.
+
 Apply database migrations with:
 
 ```bash
