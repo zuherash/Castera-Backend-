@@ -6,6 +6,7 @@ from django.utils import timezone
 from .models import Meeting, Message, Signal, Recording
 from .serializers import MeetingSerializer, MessageSerializer, SignalSerializer , RecordingSerializer
 from .permissions import IsOwnerOrAdmin
+from rest_framework.permissions import SAFE_METHODS
 from rest_framework.views import APIView
 
 
@@ -29,9 +30,14 @@ class MeetingViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
+        queryset = Meeting.objects.all().order_by('-created_on')
         if user.role == 'admin':
-            return Meeting.objects.all().order_by('-created_on')
-        return Meeting.objects.filter(user=user).order_by('-created_on')
+            return queryset
+        if getattr(self, 'action', None) == 'list':
+            return queryset.filter(user=user)
+        if self.request.method in SAFE_METHODS:
+            return queryset
+        return queryset
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)

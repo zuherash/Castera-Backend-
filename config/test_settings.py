@@ -1,18 +1,11 @@
 from .settings import *
 import os
 
-# Use PostgreSQL database from Docker for tests
+# Use an in-memory SQLite database to run tests without external services
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('POSTGRES_DB', 'castera_db_main'),
-        'USER': os.environ.get('POSTGRES_USER', 'castera_user_main'),
-        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'castera_pass_main'),
-        'HOST': os.environ.get('POSTGRES_HOST', 'db'),
-        'PORT': os.environ.get('POSTGRES_PORT', '5432'),
-        'TEST': {
-            'NAME': os.environ.get('POSTGRES_TEST_DB', 'castera_test'),
-        },
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': ':memory:',
     }
 }
 
