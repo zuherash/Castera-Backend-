@@ -25,10 +25,11 @@ docker compose run web python manage.py migrate
 
 ## Running Tests
 
-Execute the project tests using the Django test runner:
+Ensure the PostgreSQL and Redis services are running (e.g. with `docker compose up -d`).
+Then execute the project tests using the Django test runner and the test settings module:
 
 ```bash
-python manage.py test
+docker compose run web python manage.py test --settings=config.test_settings
 ```
 
 ## Project Structure

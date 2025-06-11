@@ -1,10 +1,17 @@
 from .settings import *
 
-# Use in-memory SQLite database for tests
+# Use PostgreSQL database from Docker for tests
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': ':memory:',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'castera_db_main',
+        'USER': 'castera_user_main',
+        'PASSWORD': 'castera_pass_main',
+        'HOST': 'db',
+        'PORT': '5432',
+        'TEST': {
+            'NAME': 'castera_test',
+        },
     }
 }
 
