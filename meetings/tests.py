@@ -1,3 +1,102 @@
-from django.test import TestCase
+from django.urls import reverse
+from django.utils import timezone
+from rest_framework.test import APITestCase, APIClient
+from users.models import User
+from .models import Meeting, Message, Recording
 
-# Create your tests here.
+
+class APITests(APITestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(email="user@example.com")
+        self.admin = User.objects.create_user(email="admin@example.com", role="admin")
+        self.future_date = timezone.now() + timezone.timedelta(days=1)
+        self.past_date = timezone.now() - timezone.timedelta(days=1)
+
+        self.meeting_future = Meeting.objects.create(
+            user=self.user,
+            title="Future Meeting",
+            description="test",
+            scheduled_date=self.future_date,
+        )
+
+        self.meeting_past = Meeting.objects.create(
+            user=self.user,
+            title="Past Meeting",
+            description="test",
+            scheduled_date=self.past_date,
+        )
+
+    def authenticate(self, user):
+        self.client.force_authenticate(user=user)
+
+    def test_join_meeting(self):
+        self.authenticate(self.user)
+        url = reverse("join-meeting", args=[self.meeting_future.room_id])
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.data["id"], self.meeting_future.id)
+
+    def test_meeting_crud_and_status(self):
+        self.authenticate(self.user)
+        url = reverse("meeting-list")
+        data = {
+            "title": "New meeting",
+            "description": "desc",
+            "scheduled_date": (timezone.now() + timezone.timedelta(days=2)).isoformat(),
+        }
+        resp = self.client.post(url, data, format="json")
+        self.assertEqual(resp.status_code, 201)
+        meeting_id = resp.data["id"]
+
+        detail_url = reverse("meeting-detail", args=[meeting_id])
+        resp = self.client.get(detail_url)
+        self.assertEqual(resp.status_code, 200)
+
+        resp = self.client.patch(detail_url, {"title": "Updated"}, format="json")
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.data["title"], "Updated")
+
+        status_url = reverse("meeting-set-status", args=[meeting_id])
+        resp = self.client.post(status_url, {"status": "ended"}, format="json")
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.data["message"], "Status set to ended")
+
+    def test_messages_endpoint(self):
+        self.authenticate(self.user)
+        url = reverse("meeting-messages", args=[self.meeting_future.id])
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.data, [])
+
+        data = {"content": "hello", "meeting": self.meeting_future.id}
+        resp = self.client.post(url, data, format="json")
+        self.assertEqual(resp.status_code, 201)
+        self.assertEqual(Message.objects.count(), 1)
+
+    def test_recordings_endpoint(self):
+        self.authenticate(self.user)
+        url = reverse("meeting-recordings", args=[self.meeting_future.id])
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.data, [])
+
+        data = {"file_url": "http://example.com/video.mp4", "meeting": self.meeting_future.id}
+        resp = self.client.post(url, data, format="json")
+        self.assertEqual(resp.status_code, 201)
+        self.assertEqual(Recording.objects.count(), 1)
+
+    def test_upcoming_previous_dashboard(self):
+        self.authenticate(self.user)
+        upcoming_url = reverse("upcoming-meetings")
+        resp = self.client.get(upcoming_url)
+        self.assertEqual(len(resp.data), 1)
+
+        previous_url = reverse("previous-meetings")
+        resp = self.client.get(previous_url)
+        self.assertEqual(len(resp.data), 1)
+
+        dashboard_url = reverse("user-dashboard")
+        resp = self.client.get(dashboard_url)
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.data["total_meetings"], 2)
