@@ -2,19 +2,29 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseU
 from django.db import models
 
 class CustomUserManager(BaseUserManager):
-    def create_user(self, email, **extra_fields):
+    def create_user(self, email, password=None, **extra_fields):
+        """Create and return a regular user."""
         if not email:
-            raise ValueError('The Email must be set')
+            raise ValueError("The Email must be set")
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
-        user.set_unusable_password()  # Clerk handles auth
+        if password:
+            user.set_password(password)
+        else:
+            # Clerk handles authentication for accounts without a password
+            user.set_unusable_password()
         user.save()
         return user
 
-    def create_superuser(self, email, **extra_fields):
-        extra_fields.setdefault('is_staff', True)
-        extra_fields.setdefault('is_superuser', True)
-        return self.create_user(email, **extra_fields)
+    def create_superuser(self, email, password=None, **extra_fields):
+        """Create and return a superuser with a usable password."""
+        extra_fields.setdefault("is_staff", True)
+        extra_fields.setdefault("is_superuser", True)
+
+        if password is None:
+            raise TypeError("Superusers must have a password.")
+
+        return self.create_user(email, password=password, **extra_fields)
 
 class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
