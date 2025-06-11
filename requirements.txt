@@ -2,3 +2,7 @@ Django>=4.2
 djangorestframework
 psycopg2-binary
 python-decouple
+channels
+channels_redis
+msgpack
+redis

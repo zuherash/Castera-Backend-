@@ -1,0 +1,59 @@
+[
+  {
+    "model": "auth.user",
+    "pk": 1,
+    "fields": {
+      "username": "demo",
+      "password": "pbkdf2_sha256$216000$demo$e4F5d3FiKpVfJpqF4IpuG0qJsnCykCOGLJ7vGNtkNwE=",  
+      "email": "demo@example.com",
+      "is_active": true,
+      "is_staff": true,
+      "is_superuser": true
+    }
+  },
+  {
+    "model": "meetings.meeting",
+    "pk": 1,
+    "fields": {
+      "user": 1,
+      "title": "Demo Meeting",
+      "description": "This is a demo meeting for API testing.",
+      "type_of": "public",
+      "created_on": "2025-06-03T12:00:00Z",
+      "room_id": "7e5d3c4b-f8b2-4d34-bcee-55937a71e5d2",
+      "scheduled_date": "2025-06-04T16:00:00Z",
+      "status": "active"
+    }
+  },
+  {
+    "model": "meetings.message",
+    "pk": 1,
+    "fields": {
+      "meeting": 1,
+      "user": 1,
+      "content": "Welcome to the demo meeting!",
+      "timestamp": "2025-06-04T16:01:00Z"
+    }
+  },
+  {
+    "model": "meetings.signal",
+    "pk": 1,
+    "fields": {
+      "meeting": 1,
+      "sender": 1,
+      "signal_type": "offer",
+      "data": "{\"sdp\": \"v=0\\r\\no=- 4611732155436752 2 IN IP4 ...\", \"type\": \"offer\"}",
+      "created_at": "2025-06-04T16:02:00Z"
+    }
+  },
+  {
+    "model": "meetings.recording",
+    "pk": 1,
+    "fields": {
+      "meeting": 1,
+      "uploaded_by": 1,
+      "file_url": "https://castera.com/recordings/demo_meeting.mp4",
+      "created_at": "2025-06-04T16:10:00Z"
+    }
+  }
+]

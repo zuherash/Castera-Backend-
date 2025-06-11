@@ -19,6 +19,7 @@ class Meeting(models.Model):
     type_of = models.CharField(max_length=10, choices=ROOM_TYPE_CHOICES, default='public')
     created_on = models.DateTimeField(auto_now_add=True)
     room_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    scheduled_date = models.DateTimeField()
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='active')
 
     def __str__(self):
@@ -47,3 +48,12 @@ class Signal(models.Model):
 
     def __str__(self):
         return f"{self.signal_type.upper()} by {self.sender.email} in {self.meeting.title}"
+    
+class Recording(models.Model):
+    meeting = models.ForeignKey(Meeting, on_delete=models.CASCADE, related_name='recordings')
+    uploaded_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    file_url = models.URLField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Recording for {self.meeting.title} by {self.uploaded_by.email}"

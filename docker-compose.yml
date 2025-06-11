@@ -11,6 +11,7 @@ services:
       - "8100:8000"  
     depends_on:
       - db
+      - redis  #  مهم إذا بدك Channels تشتغل
 
   db:
     image: postgres:15
@@ -22,6 +23,11 @@ services:
       - "55432:5432"  
     volumes:
       - castera_postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6378:6379"  
 
 volumes:
   castera_postgres_data:
