@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,10 +21,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-ua_&hud*34c8-4tq7+_xd*c40drb1s%@yr$2n6p=4@k^@2$npe'
+SECRET_KEY = os.environ.get(
+    'DJANGO_SECRET_KEY',
+    'django-insecure-ua_&hud*34c8-4tq7+_xd*c40drb1s%@yr$2n6p=4@k^@2$npe',
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = []
 
@@ -78,11 +82,11 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'castera_db_main',
-        'USER': 'castera_user_main',
-        'PASSWORD': 'castera_pass_main',
-        'HOST': 'db',  
-        'PORT': '5432',  
+        'NAME': os.environ.get('POSTGRES_DB', 'castera_db_main'),
+        'USER': os.environ.get('POSTGRES_USER', 'castera_user_main'),
+        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'castera_pass_main'),
+        'HOST': os.environ.get('POSTGRES_HOST', 'db'),
+        'PORT': os.environ.get('POSTGRES_PORT', '5432'),
     }
 }
 
@@ -134,7 +138,10 @@ CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            "hosts": [("redis", 6378)],
+            "hosts": [(
+                os.environ.get('REDIS_HOST', 'redis'),
+                int(os.environ.get('REDIS_PORT', '6378')),
+            )],
         },
     },
 }
