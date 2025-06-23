@@ -57,3 +57,24 @@ class Recording(models.Model):
 
     def __str__(self):
         return f"Recording for {self.meeting.title} by {self.uploaded_by.email}"
+
+
+class ParticipantState(models.Model):
+    """Represents the state of a user inside a meeting call."""
+
+    meeting = models.ForeignKey(
+        Meeting, on_delete=models.CASCADE, related_name="participant_states"
+    )
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    audio_muted = models.BooleanField(default=False)
+    video_stopped = models.BooleanField(default=False)
+    in_call = models.BooleanField(default=True)
+
+    class Meta:
+        unique_together = ("meeting", "user")
+
+    def __str__(self):
+        return (
+            f"State for {self.user.email} in {self.meeting.title}:"
+            f" muted={self.audio_muted} video={self.video_stopped}"
+        )

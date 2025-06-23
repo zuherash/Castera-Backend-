@@ -2,7 +2,7 @@ from django.urls import reverse
 from django.utils import timezone
 from rest_framework.test import APITestCase, APIClient
 from users.models import User
-from .models import Meeting, Message, Recording
+from .models import Meeting, Message, Recording, ParticipantState
 
 
 class APITests(APITestCase):
@@ -85,6 +85,26 @@ class APITests(APITestCase):
         resp = self.client.post(url, data, format="json")
         self.assertEqual(resp.status_code, 201)
         self.assertEqual(Recording.objects.count(), 1)
+
+    def test_call_actions(self):
+        self.authenticate(self.user)
+        mute_url = reverse("meeting-mute-audio", args=[self.meeting_future.id])
+        resp = self.client.post(mute_url)
+        self.assertEqual(resp.status_code, 200)
+        state = ParticipantState.objects.get(meeting=self.meeting_future, user=self.user)
+        self.assertTrue(state.audio_muted)
+
+        video_url = reverse("meeting-stop-video", args=[self.meeting_future.id])
+        resp = self.client.post(video_url)
+        self.assertEqual(resp.status_code, 200)
+        state.refresh_from_db()
+        self.assertTrue(state.video_stopped)
+
+        stop_url = reverse("meeting-stop-call", args=[self.meeting_future.id])
+        resp = self.client.post(stop_url)
+        self.assertEqual(resp.status_code, 200)
+        state.refresh_from_db()
+        self.assertFalse(state.in_call)
 
     def test_upcoming_previous_dashboard(self):
         self.authenticate(self.user)
