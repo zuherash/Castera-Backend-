@@ -100,6 +100,10 @@ All meeting endpoints are prefixed with `/api/` and require authentication.
 | `POST` | `/api/meetings/<id>/mute-audio/`              | Mute the authenticated user's microphone. |
 | `POST` | `/api/meetings/<id>/stop-video/`              | Stop the authenticated user's video stream. |
 | `POST` | `/api/meetings/<id>/stop-call/`               | Mark that the user has left the call. |
+| `POST` | `/api/meetings/<id>/raise-hand/`              | Raise the authenticated user's hand. |
+| `POST` | `/api/meetings/<id>/lower-hand/`              | Lower the authenticated user's hand. |
+| `POST` | `/api/meetings/<id>/start-screen-share/`      | Mark that the user started screen sharing. |
+| `POST` | `/api/meetings/<id>/stop-screen-share/`       | Mark that the user stopped screen sharing. |
 | `GET`  | `/api/meetings/upcoming/`                     | List upcoming meetings for the user. |
 | `GET`  | `/api/meetings/previous/`                     | List past/ended meetings for the user. |
 
@@ -129,3 +133,10 @@ The project does not yet ship with an OpenAPI/Swagger specification. You can
 generate one using tools such as
 [Django REST Framework's schema generator](https://www.django-rest-framework.org/api-guide/schemas/)
 or `drf-yasg`.
+
+## Real-Time Features
+
+The `ChatConsumer` broadcasts presence events when users join or leave a room.
+Endpoints allow clients to raise or lower a hand and to start or stop screen sharing.
+Use token authentication (via the optional Clerk middleware) or standard session
+authentication to authorize WebSocket connections and REST calls.
