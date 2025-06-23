@@ -31,6 +31,17 @@ Apply database migrations with:
 docker compose run web python manage.py migrate
 ```
 
+### Running Daphne Locally
+
+For local development with WebSockets you can launch the ASGI server using
+[`daphne`](https://github.com/django/daphne):
+
+```bash
+daphne config.asgi:application
+```
+
+This serves both HTTP and WebSocket traffic on port `8000` by default.
+
 ## Running Tests
 
 Ensure the PostgreSQL and Redis services are running (e.g. with `docker compose up -d`).
@@ -86,6 +97,9 @@ All meeting endpoints are prefixed with `/api/` and require authentication.
 | `POST` | `/api/meetings/<id>/messages/`                | Create a new message. |
 | `GET`  | `/api/meetings/<id>/recordings/`              | List meeting recordings. |
 | `POST` | `/api/meetings/<id>/recordings/`              | Upload a recording URL. |
+| `POST` | `/api/meetings/<id>/mute-audio/`              | Mute the authenticated user's microphone. |
+| `POST` | `/api/meetings/<id>/stop-video/`              | Stop the authenticated user's video stream. |
+| `POST` | `/api/meetings/<id>/stop-call/`               | Mark that the user has left the call. |
 | `GET`  | `/api/meetings/upcoming/`                     | List upcoming meetings for the user. |
 | `GET`  | `/api/meetings/previous/`                     | List past/ended meetings for the user. |
 

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Meeting,Message,Signal,Recording
+from .models import Meeting, Message, Signal, Recording, ParticipantState
 
 
 class MessageSerializer(serializers.ModelSerializer):
@@ -31,3 +31,20 @@ class RecordingSerializer(serializers.ModelSerializer):
         model = Recording
         fields = ['id', 'meeting', 'uploaded_by', 'uploaded_by_email', 'file_url', 'created_at']
         read_only_fields = ['uploaded_by', 'uploaded_by_email', 'created_at']
+
+
+class ParticipantStateSerializer(serializers.ModelSerializer):
+    user_email = serializers.ReadOnlyField(source='user.email')
+
+    class Meta:
+        model = ParticipantState
+        fields = [
+            'id',
+            'meeting',
+            'user',
+            'user_email',
+            'audio_muted',
+            'video_stopped',
+            'in_call',
+        ]
+        read_only_fields = ['meeting', 'user', 'user_email']

@@ -3,8 +3,14 @@ from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied
 from django.utils import timezone
-from .models import Meeting, Message, Signal, Recording
-from .serializers import MeetingSerializer, MessageSerializer, SignalSerializer , RecordingSerializer
+from .models import Meeting, Message, Signal, Recording, ParticipantState
+from .serializers import (
+    MeetingSerializer,
+    MessageSerializer,
+    SignalSerializer,
+    RecordingSerializer,
+    ParticipantStateSerializer,
+)
 from .permissions import IsOwnerOrAdmin
 from rest_framework.permissions import SAFE_METHODS
 from rest_framework.views import APIView
@@ -53,6 +59,39 @@ class MeetingViewSet(viewsets.ModelViewSet):
         meeting.status = new_status
         meeting.save()
         return Response({'message': f'Status set to {new_status}'})
+
+    @action(detail=True, methods=['post'], url_path='mute-audio')
+    def mute_audio(self, request, pk=None):
+        """Mute the authenticated user's microphone in the meeting."""
+        meeting = self.get_object()
+        state, _ = ParticipantState.objects.get_or_create(
+            meeting=meeting, user=request.user
+        )
+        state.audio_muted = True
+        state.save()
+        return Response({'message': 'Audio muted'})
+
+    @action(detail=True, methods=['post'], url_path='stop-video')
+    def stop_video(self, request, pk=None):
+        """Stop the authenticated user's video in the meeting."""
+        meeting = self.get_object()
+        state, _ = ParticipantState.objects.get_or_create(
+            meeting=meeting, user=request.user
+        )
+        state.video_stopped = True
+        state.save()
+        return Response({'message': 'Video stopped'})
+
+    @action(detail=True, methods=['post'], url_path='stop-call')
+    def stop_call(self, request, pk=None):
+        """Mark that the authenticated user has left the call."""
+        meeting = self.get_object()
+        state, _ = ParticipantState.objects.get_or_create(
+            meeting=meeting, user=request.user
+        )
+        state.in_call = False
+        state.save()
+        return Response({'message': 'Call stopped'})
 
 
 #  إدارة رسائل الاجتماع
