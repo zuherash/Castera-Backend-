@@ -93,6 +93,50 @@ class MeetingViewSet(viewsets.ModelViewSet):
         state.save()
         return Response({'message': 'Call stopped'})
 
+    @action(detail=True, methods=['post'], url_path='raise-hand')
+    def raise_hand(self, request, pk=None):
+        """Raise the authenticated user's hand."""
+        meeting = self.get_object()
+        state, _ = ParticipantState.objects.get_or_create(
+            meeting=meeting, user=request.user
+        )
+        state.raised_hand = True
+        state.save()
+        return Response({'message': 'Hand raised'})
+
+    @action(detail=True, methods=['post'], url_path='lower-hand')
+    def lower_hand(self, request, pk=None):
+        """Lower the authenticated user's hand."""
+        meeting = self.get_object()
+        state, _ = ParticipantState.objects.get_or_create(
+            meeting=meeting, user=request.user
+        )
+        state.raised_hand = False
+        state.save()
+        return Response({'message': 'Hand lowered'})
+
+    @action(detail=True, methods=['post'], url_path='start-screen-share')
+    def start_screen_share(self, request, pk=None):
+        """Mark that the authenticated user started screen sharing."""
+        meeting = self.get_object()
+        state, _ = ParticipantState.objects.get_or_create(
+            meeting=meeting, user=request.user
+        )
+        state.screen_sharing = True
+        state.save()
+        return Response({'message': 'Screen sharing started'})
+
+    @action(detail=True, methods=['post'], url_path='stop-screen-share')
+    def stop_screen_share(self, request, pk=None):
+        """Mark that the authenticated user stopped screen sharing."""
+        meeting = self.get_object()
+        state, _ = ParticipantState.objects.get_or_create(
+            meeting=meeting, user=request.user
+        )
+        state.screen_sharing = False
+        state.save()
+        return Response({'message': 'Screen sharing stopped'})
+
 
 #  إدارة رسائل الاجتماع
 class MessageListCreateView(generics.ListCreateAPIView):

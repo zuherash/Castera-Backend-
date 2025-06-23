@@ -46,5 +46,7 @@ class ParticipantStateSerializer(serializers.ModelSerializer):
             'audio_muted',
             'video_stopped',
             'in_call',
+            'raised_hand',
+            'screen_sharing',
         ]
         read_only_fields = ['meeting', 'user', 'user_email']

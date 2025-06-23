@@ -106,6 +106,30 @@ class APITests(APITestCase):
         state.refresh_from_db()
         self.assertFalse(state.in_call)
 
+        raise_url = reverse("meeting-raise-hand", args=[self.meeting_future.id])
+        resp = self.client.post(raise_url)
+        self.assertEqual(resp.status_code, 200)
+        state.refresh_from_db()
+        self.assertTrue(state.raised_hand)
+
+        lower_url = reverse("meeting-lower-hand", args=[self.meeting_future.id])
+        resp = self.client.post(lower_url)
+        self.assertEqual(resp.status_code, 200)
+        state.refresh_from_db()
+        self.assertFalse(state.raised_hand)
+
+        start_share = reverse("meeting-start-screen-share", args=[self.meeting_future.id])
+        resp = self.client.post(start_share)
+        self.assertEqual(resp.status_code, 200)
+        state.refresh_from_db()
+        self.assertTrue(state.screen_sharing)
+
+        stop_share = reverse("meeting-stop-screen-share", args=[self.meeting_future.id])
+        resp = self.client.post(stop_share)
+        self.assertEqual(resp.status_code, 200)
+        state.refresh_from_db()
+        self.assertFalse(state.screen_sharing)
+
     def test_upcoming_previous_dashboard(self):
         self.authenticate(self.user)
         upcoming_url = reverse("upcoming-meetings")

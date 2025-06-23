@@ -69,6 +69,8 @@ class ParticipantState(models.Model):
     audio_muted = models.BooleanField(default=False)
     video_stopped = models.BooleanField(default=False)
     in_call = models.BooleanField(default=True)
+    raised_hand = models.BooleanField(default=False)
+    screen_sharing = models.BooleanField(default=False)
 
     class Meta:
         unique_together = ("meeting", "user")

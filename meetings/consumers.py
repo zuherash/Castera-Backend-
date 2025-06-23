@@ -15,12 +15,30 @@ class ChatConsumer(AsyncWebsocketConsumer):
             self.channel_name
         )
         await self.accept()
+        if self.scope.get("user") and self.scope["user"].is_authenticated:
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    "type": "presence_event",
+                    "user": self.scope["user"].email,
+                    "status": "joined",
+                },
+            )
 
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(
             self.room_group_name,
             self.channel_name
         )
+        if self.scope.get("user") and self.scope["user"].is_authenticated:
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    "type": "presence_event",
+                    "user": self.scope["user"].email,
+                    "status": "left",
+                },
+            )
 
     async def receive(self, text_data):
         data = json.loads(text_data)
@@ -48,4 +66,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({
             'message': event['message'],
             'sender': event['sender'],
+        }))
+
+    async def presence_event(self, event):
+        await self.send(text_data=json.dumps({
+            'presence': event['status'],
+            'user': event['user'],
         }))
